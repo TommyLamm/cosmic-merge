@@ -1,0 +1,20 @@
+{
+  "name": "cosmic-merge",
+  "version": "1.0.0",
+  "description": "星體融合 (Cosmic Merge) - 宇宙重力剛體合成益智遊戲",
+  "author": "TommyLam",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "matter-js": "^0.20.0"
+  },
+  "devDependencies": {
+    "@types/matter-js": "^0.19.6",
+    "typescript": "^5.7.3",
+    "vite": "^6.2.0"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "id": "cosmic-merge",
+  "name": "星體融合",
+  "version": "1.0.0",
+  "description": "融合微型小行星與行星，打造太陽與奇異黑洞的宇宙重力益智物理遊戲！",
+  "author": "TommyLam",
+  "entry": "index.html",
+  "cover": "cover.png",
+  "tags": ["休閒", "物理", "益智", "合成", "太空"],
+  "instructions": "滑鼠移動或觸控拖曳調整發射軌道，放開或點擊進行投擲。兩個相同星體相撞時會融合為更高階的天體！注意不要讓星體堆疊超過頂部紅色警戒線，否則宇宙將會坍縮！",
+  "devices": ["desktop", "mobile"]
+}
