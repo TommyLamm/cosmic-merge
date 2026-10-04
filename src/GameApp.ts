@@ -11,6 +11,7 @@ import { HUD } from './ui/HUD';
 import { CodexModal } from './ui/CodexModal';
 import { GameOverModal } from './ui/GameOverModal';
 import { OverlayUI } from './ui/OverlayUI';
+import { Playroom } from './playroom-sdk.js';
 
 export type GameState = 'TITLE' | 'INSTRUCTIONS' | 'PLAYING' | 'PAUSED' | 'CODEX' | 'GAME_OVER';
 
@@ -40,6 +41,7 @@ export class GameApp {
   private highScore: number = 0;
   private totalMerges: number = 0;
   private isNewRecord: boolean = false;
+  private accountRun: Promise<{ runId: string } | null> | null = null;
 
   // 天體投擲佇列
   private currentTier: number = 1;
@@ -270,6 +272,17 @@ export class GameApp {
   }
 
   private startNewGame(): void {
+    // 啟動 Playroom 平台成績局次追蹤（非阻塞，離線/訪客不阻擋遊玩）
+    try {
+      this.accountRun = Playroom.startRun().catch((err) => {
+        console.warn('[Playroom] startRun skipped or failed:', err);
+        return null;
+      });
+    } catch (err) {
+      console.warn('[Playroom] startRun call error:', err);
+      this.accountRun = null;
+    }
+
     this.physicsWorld.reset();
     this.particleSystem.clear();
     this.score = 0;
@@ -301,6 +314,22 @@ export class GameApp {
       this.isNewRecord = true;
       this.storageManager.updateHighScore(this.highScore);
     }
+
+    // 回報 Playroom 平台成績（安全非負整數，離線/訪客不阻擋遊戲）
+    const safeScore = Math.floor(Math.max(0, this.score));
+    const pendingRun = this.accountRun;
+    this.accountRun = null;
+    if (pendingRun) {
+      void pendingRun.then((run) => {
+        if (run && typeof run.runId === 'string') {
+          return Playroom.finishRun({ runId: run.runId, score: safeScore });
+        }
+        return null;
+      }).catch((err) => {
+        console.warn('[Playroom] finishRun error:', err);
+      });
+    }
+
     this.gameOverModal.open();
   }
 

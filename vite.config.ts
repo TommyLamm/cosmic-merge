@@ -13,7 +13,7 @@ export default defineConfig({
       name: 'copy-game-manifest-and-cover',
       closeBundle() {
         const distDir = path.resolve(__dirname, 'dist');
-        const assets = ['game.json', 'cover.png'];
+        const assets = ['game.json', 'cover.png', 'playroom-sdk.js', 'playroom-sdk.d.ts'];
         for (const file of assets) {
           const src = path.resolve(__dirname, file);
           const dest = path.resolve(distDir, file);
