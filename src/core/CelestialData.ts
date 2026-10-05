@@ -198,17 +198,17 @@ export const CELESTIAL_CONFIGS: ICelestialConfig[] = [
   {
     tier: 12,
     id: 'blackhole',
-    name: '奇異黑洞',
+    name: '終極黑洞·奇異點',
     radius: 192,
     density: 0.0080,
     restitution: 0.05,
-    score: 150,
+    score: 250,
     spawnWeight: 0,
     primaryColor: '#000000',
-    accentColor: '#1a1a2e',
-    glowColor: 'rgba(112, 166, 255, 0.9)',
-    diameterKm: '事件視界 半徑未知',
-    scienceFact: '時空曲率極大的天體，重力強烈到連光都無法逃逸！其周圍擁有強大的引力井，能吞噬靠近的微小星體。'
+    accentColor: '#120f26',
+    glowColor: 'rgba(120, 180, 255, 0.95)',
+    diameterKm: '事件視界 奇異點無限小',
+    scienceFact: '時空曲率極大的終極奇異點天體，誕生時引發超新星全屏爆裂並一口吞噬周圍微型隕石！具有強大周邊引力井。'
   }
 ];
 

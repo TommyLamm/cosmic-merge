@@ -44,14 +44,17 @@ export class HUD {
     isMuted: boolean,
     hazardActive: boolean,
     hazardCountdown: number,
-    deadlineY: number = 140
+    deadlineY: number = 140,
+    chainCount: number = 1,
+    chainMultiplier: number = 1.0,
+    chainRemainingTime: number = 0
   ): void {
     ctx.save();
 
     // 1. 頂部深色半透明毛玻璃底板
     const headerGrad = ctx.createLinearGradient(0, 0, 0, 85);
-    headerGrad.addColorStop(0, 'rgba(10, 14, 34, 0.92)');
-    headerGrad.addColorStop(1, 'rgba(10, 14, 34, 0.35)');
+    headerGrad.addColorStop(0, 'rgba(8, 12, 30, 0.95)');
+    headerGrad.addColorStop(1, 'rgba(8, 12, 30, 0.40)');
     ctx.fillStyle = headerGrad;
     ctx.fillRect(0, 0, this.width, 85);
 
@@ -77,8 +80,46 @@ export class HUD {
     // 4. 繪製右側 Next 下一個星體預覽圓框
     this.renderNextPreview(ctx, nextTier);
 
-    // 5. 繪製頂部紅色警戒線 (Deadline Y = 140)
+    // 5. 繪製連鎖共鳴 (Cascade Chain) 狀態指示
+    if (chainCount >= 2 && chainRemainingTime > 0) {
+      this.renderCascadeBadge(ctx, chainCount, chainMultiplier, chainRemainingTime);
+    }
+
+    // 6. 繪製頂部紅色警戒線 (Deadline Y = 140)
     this.renderDeadline(ctx, deadlineY, hazardActive, hazardCountdown);
+
+    ctx.restore();
+  }
+
+  // 連鎖共鳴指示標籤
+  private renderCascadeBadge(
+    ctx: CanvasRenderingContext2D,
+    chainCount: number,
+    multiplier: number,
+    remainingTime: number
+  ): void {
+    ctx.save();
+    const badgeX = 250;
+    const badgeY = 96;
+    const badgeW = 160;
+    const badgeH = 26;
+
+    ctx.beginPath();
+    ctx.roundRect(badgeX - badgeW / 2, badgeY - badgeH / 2, badgeW, badgeH, 13);
+    ctx.fillStyle = 'rgba(255, 171, 0, 0.18)';
+    ctx.fill();
+    ctx.strokeStyle = '#ffd54f';
+    ctx.lineWidth = 1.5;
+    ctx.shadowColor = '#ffab00';
+    ctx.shadowBlur = 8;
+    ctx.stroke();
+
+    ctx.font = '900 12px "SF Pro Display", system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#fff59d';
+    ctx.shadowBlur = 6;
+    ctx.fillText(`⚡ CHAIN ${chainCount} (${multiplier.toFixed(1)}x · ${remainingTime.toFixed(1)}s)`, badgeX, badgeY);
 
     ctx.restore();
   }
@@ -156,9 +197,9 @@ export class HUD {
     ctx.save();
 
     if (hazardActive) {
-      // 警報狀態：紅色強烈閃爍虛線 + 倒數警示
+      // 警報狀態：紅色強烈閃爍虛線 + 倒數警示 (連續停留 2.8s 判定)
       const flash = (Math.sin(this.flashPhase * 3) + 1) / 2;
-      ctx.strokeStyle = `rgba(255, 51, 102, ${0.4 + flash * 0.6})`;
+      ctx.strokeStyle = `rgba(255, 51, 102, ${0.45 + flash * 0.55})`;
       ctx.lineWidth = 2.5;
       ctx.shadowColor = '#ff3366';
       ctx.shadowBlur = 12;
@@ -171,15 +212,15 @@ export class HUD {
 
       // 警告倒數浮動標籤
       ctx.setLineDash([]);
-      ctx.font = '900 14px "SF Pro Display", system-ui, sans-serif';
+      ctx.font = '900 13px "SF Pro Display", system-ui, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillStyle = '#ff1744';
       ctx.shadowColor = '#ff1744';
       ctx.shadowBlur = 8;
       const timeLeft = Math.max(0, countdownSeconds).toFixed(1);
-      ctx.fillText(`⚠️ 坍縮危險倒數: ${timeLeft}s`, this.width / 2, deadlineY - 8);
+      ctx.fillText(`⚠️ 靜止超線坍縮倒數: ${timeLeft}s`, this.width / 2, deadlineY - 8);
 
-      // 螢幕邊緣紅色暗角光暈 (Vignette)
+      // 螢幕邊緣紅色暗角光暈
       const edgeGrad = ctx.createLinearGradient(0, 0, 0, deadlineY + 60);
       edgeGrad.addColorStop(0, `rgba(255, 23, 68, ${0.15 + flash * 0.15})`);
       edgeGrad.addColorStop(1, 'rgba(255, 23, 68, 0)');

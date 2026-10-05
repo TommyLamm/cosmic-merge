@@ -67,20 +67,55 @@ export class ParticleSystem {
     }
   }
 
-  // 2. 產生擴散衝擊波環
-  public emitShockwave(x: number, y: number, color: string, startRadius: number, maxRadius: number): void {
+  // 2. 產生擴散衝擊波環 (支援震盪寬度與發光)
+  public emitShockwave(x: number, y: number, color: string, startRadius: number, maxRadius: number, width: number = 4): void {
     this.shockwaves.push({
       x,
       y,
       radius: startRadius,
       maxRadius,
       color,
-      alpha: 0.9,
-      width: 4
+      alpha: 0.95,
+      width
     });
   }
 
-  // 3. 產生浮動積分標記
+  // 2.5 超新星全螢幕星塵爆裂 (Supernova Dust Burst)
+  public emitSupernovaDust(x: number, y: number, count: number = 70): void {
+    const supernovaColors = ['#ffffff', '#fff59d', '#ffb74d', '#ff7043', '#80d8ff', '#b388ff'];
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 2.5 + Math.random() * 8.5;
+      const life = 45 + Math.random() * 35;
+      const color = supernovaColors[Math.floor(Math.random() * supernovaColors.length)];
+      this.particles.push({
+        x,
+        y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        size: 2.5 + Math.random() * 4.5,
+        color,
+        alpha: 1,
+        life,
+        maxLife: life
+      });
+    }
+  }
+
+  // 2.6 全螢幕衝擊閃光
+  private screenFlashAlpha: number = 0;
+  private screenFlashColor: string = '#ffffff';
+  private screenFlashDuration: number = 0;
+  private screenFlashMaxDuration: number = 0;
+
+  public triggerScreenFlash(color: string = '#ffffff', maxAlpha: number = 0.5, durationMs: number = 220): void {
+    this.screenFlashColor = color;
+    this.screenFlashAlpha = maxAlpha;
+    this.screenFlashDuration = durationMs;
+    this.screenFlashMaxDuration = durationMs;
+  }
+
+  // 3. 產生浮動積分標記 (支援字體大小與色調)
   public emitFloatingText(x: number, y: number, text: string, color: string = '#ffd54f', size: number = 22): void {
     this.floatingTexts.push({
       x,
@@ -90,8 +125,8 @@ export class ParticleSystem {
       color,
       size,
       alpha: 1,
-      life: 45,
-      maxLife: 45
+      life: 50,
+      maxLife: 50
     });
   }
 
@@ -144,6 +179,13 @@ export class ParticleSystem {
         this.floatingTexts.splice(i, 1);
       }
     }
+    // 更新全螢幕閃光
+    if (this.screenFlashDuration > 0) {
+      this.screenFlashDuration -= deltaMs;
+      if (this.screenFlashDuration <= 0) {
+        this.screenFlashAlpha = 0;
+      }
+    }
   }
 
   public render(ctx: CanvasRenderingContext2D): void {
@@ -177,6 +219,17 @@ export class ParticleSystem {
       ctx.restore();
     }
 
+    // 全螢幕閃光效果
+    if (this.screenFlashDuration > 0 && this.screenFlashAlpha > 0) {
+      const flashRatio = Math.max(0, this.screenFlashDuration / this.screenFlashMaxDuration);
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = this.screenFlashAlpha * flashRatio;
+      ctx.fillStyle = this.screenFlashColor;
+      ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      ctx.restore();
+    }
+
     // 恢復正常混合繪製文字
     ctx.globalCompositeOperation = 'source-over';
     for (const ft of this.floatingTexts) {
@@ -203,5 +256,7 @@ export class ParticleSystem {
     this.shakeDuration = 0;
     this.shakeOffsetX = 0;
     this.shakeOffsetY = 0;
+    this.screenFlashAlpha = 0;
+    this.screenFlashDuration = 0;
   }
 }
